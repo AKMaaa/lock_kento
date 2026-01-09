@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ロック解除</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            min-height: 25px;
+        }
+
+        .status.success {
+            color: #374151;
+        }
+
+        .status.error {
+            color: #6b7280;
+        }
+
+        .status.info {
+            color: #4b5563;
+        }
+
+        .attempts {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* モード選択画面 */
+        .mode-selection {
+            text-align: center;
+        }
+
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .mode-btn {
+            padding: 20px 40px;
+            border: none;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9fafb;
+            color: #1f2937;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-btn:hover {
+            background: #f3f4f6;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .mode-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .mode-btn.pattern {
+            background: #f9fafb;
+            color: #1f2937;
+        }
+
+        .mode-btn.pattern:hover {
+            background: #f3f4f6;
+        }
+
+        .mode-btn.pin {
+            background: #f9fafb;
+            color: #1f2937;
+        }
+
+        .mode-btn.pin:hover {
+            background: #f3f4f6;
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #6b7280;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        }
+
+        /* PINロック画面 */
+        .pin-lock-view {
+            display: none;
+        }
+
+        .pin-lock-view.active {
+            display: block;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .pin-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid #d1d5db;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: #1f2937;
+            border-color: #1f2937;
+        }
+
+        .pin-dot.error {
+            background: #dc2626;
+            border-color: #dc2626;
+            animation: pulse 0.3s;
+        }
+
+        .pin-dot.success {
+            background: #10b981;
+            border-color: #10b981;
+            animation: successPulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(1.1); }
+        }
+
+        .container.success-glow {
+            animation: successGlow 0.6s;
+        }
+
+        @keyframes successGlow {
+            0%, 100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+            50% { box-shadow: 0 20px 60px rgba(16, 185, 129, 0.5); }
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .key {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 15px;
+            background: #f9fafb;
+            font-size: 36px;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .key:hover {
+            background: #f3f4f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .key:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            background: #e5e7eb;
+        }
+
+        .key.delete {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .key.delete:hover {
+            background: #fee2e2;
+        }
+
+        .key.clear {
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 20px;
+        }
+
+        .key.clear:hover {
+            background: #e5e7eb;
+        }
+
+        .container.error-shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .controls button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-set {
+            background: #1f2937;
+            color: white;
+        }
+
+        .btn-set:hover {
+            background: #111827;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(31, 41, 55, 0.3);
+        }
+
+        .btn-clear {
+            background: #9ca3af;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #6b7280;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
+        }
+
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .pin-length-selector {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .pin-length-selector label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-right: 10px;
+        }
+
+        .pin-length-selector select {
+            padding: 8px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: #1f2937;
+            cursor: pointer;
+        }
+
+        .pin-length-selector select:focus {
+            outline: none;
+            border-color: #1f2937;
+        }
+
+        /* パターンロック画面 */
+        .pattern-lock-view {
+            display: none;
+        }
+
+        .pattern-lock-view.active {
+            display: block;
+        }
+
+        .pattern-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
+            aspect-ratio: 1;
+            background: #f9fafb;
+            border-radius: 15px;
+            padding: 20px;
+            transition: transform 0.1s;
+        }
+
+        .pattern-grid {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .dot {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dot::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.2s;
+        }
+
+        .dot.active {
+            border-color: #1f2937;
+            background: #f3f4f6;
+        }
+
+        .dot.active::before {
+            background: #1f2937;
+        }
+
+        .dot.visited {
+            border-color: #374151;
+            background: #f9fafb;
+        }
+
+        .dot.visited::before {
+            background: #374151;
+        }
+
+        .dot.error {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .dot.error::before {
+            background: #dc2626;
+        }
+
+        .dot.success {
+            border-color: #10b981;
+            background: #f3f4f6;
+        }
+
+        .dot.success::before {
+            background: #10b981;
+        }
+
+        .pattern-container.error-shake {
+            animation: shakePattern 0.5s;
+        }
+
+        .pattern-container.success-glow {
+            animation: successGlow 0.6s;
+        }
+
+        .line.error {
+            background: #dc2626;
+        }
+
+        .line.success {
+            background: #10b981;
+        }
+
+        @keyframes shakePattern {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+            20%, 40%, 60%, 80% { transform: translateX(3px); }
+        }
+
+        /* 9つの点の配置 */
+        .dot:nth-child(1) { top: 5%; left: 0; }
+        .dot:nth-child(2) { top: 5%; left: 50%; transform: translateX(-50%); }
+        .dot:nth-child(3) { top: 5%; right: 0; }
+        .dot:nth-child(4) { top: 50%; left: 0; transform: translateY(-50%); }
+        .dot:nth-child(5) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .dot:nth-child(6) { top: 50%; right: 0; transform: translateY(-50%); }
+        .dot:nth-child(7) { bottom: 5%; left: 0; }
+        .dot:nth-child(8) { bottom: 5%; left: 50%; transform: translateX(-50%); }
+        .dot:nth-child(9) { bottom: 5%; right: 0; }
+
+        .line {
+            position: absolute;
+            height: 4px;
+            background: #1f2937;
+            transform-origin: left center;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- モード選択画面 -->
+        <div class="mode-selection" id="modeSelection">
+            <h1>ロック解除</h1>
+            <div class="status info">ロック方式を選択してください</div>
+            <div class="mode-buttons">
+                <button class="mode-btn pattern" onclick="selectMode('pattern')">
+                    パターンロック
+                </button>
+                <button class="mode-btn pin" onclick="selectMode('pin')">
+                    PINロック
+                </button>
+            </div>
+        </div>
+
+        <!-- PINロック画面 -->
+        <div class="pin-lock-view" id="pinLockView">
+            <button class="back-btn" onclick="backToSelection()">← 戻る</button>
+            <h1>PINコードロック解除</h1>
+            <div class="status info" id="pinStatus">まずPINコードを設定してください</div>
+            <div class="attempts" id="pinAttemptsDisplay">挑戦回数: 0</div>
+            
+            <div class="pin-length-selector">
+                <label for="pinLength">桁数:</label>
+                <select id="pinLength" onchange="changePinLength()">
+                    <option value="4" selected>4桁</option>
+                    <option value="6">6桁</option>
+                </select>
+            </div>
+
+            <div class="pin-display" id="pinDisplay"></div>
+
+            <div class="keypad">
+                <button class="key" onclick="inputNumber(1)">1</button>
+                <button class="key" onclick="inputNumber(2)">2</button>
+                <button class="key" onclick="inputNumber(3)">3</button>
+                <button class="key" onclick="inputNumber(4)">4</button>
+                <button class="key" onclick="inputNumber(5)">5</button>
+                <button class="key" onclick="inputNumber(6)">6</button>
+                <button class="key" onclick="inputNumber(7)">7</button>
+                <button class="key" onclick="inputNumber(8)">8</button>
+                <button class="key" onclick="inputNumber(9)">9</button>
+                <button class="key clear" onclick="clearPinInput()">クリア</button>
+                <button class="key" onclick="inputNumber(0)">0</button>
+                <button class="key delete" onclick="deleteLastPin()">削除</button>
+            </div>
+
+            <div class="controls">
+                <button class="btn-set" onclick="setPin()">PIN設定</button>
+                <button class="btn-reset" onclick="resetPin()">リセット</button>
+                <button class="btn-clear" onclick="clearPinInput()">クリア</button>
+            </div>
+
+            <div class="instructions">
+                <h3>使い方</h3>
+                <p>1. 桁数を選択します（4桁、6桁から選択）</p>
+                <p>2. 数字キーを押してPINコードを入力します</p>
+                <p>3. 正しいPINコードを入力すると解除成功です</p>
+                <p>4. 「削除」ボタンで最後の1桁を削除、「クリア」ボタンで全削除</p>
+            </div>
+        </div>
+
+        <!-- パターンロック画面 -->
+        <div class="pattern-lock-view" id="patternLockView">
+            <button class="back-btn" onclick="backToSelection()">← 戻る</button>
+            <h1>パターンロック解除</h1>
+            <div class="status info" id="patternStatus">まずパターンを描いて「パターン設定」を押してください</div>
+            <div class="attempts" id="patternAttemptsDisplay">挑戦回数: 0</div>
+            
+            <div class="pattern-container">
+                <div class="pattern-grid" id="patternGrid">
+                    <div class="dot" data-index="0"></div>
+                    <div class="dot" data-index="1"></div>
+                    <div class="dot" data-index="2"></div>
+                    <div class="dot" data-index="3"></div>
+                    <div class="dot" data-index="4"></div>
+                    <div class="dot" data-index="5"></div>
+                    <div class="dot" data-index="6"></div>
+                    <div class="dot" data-index="7"></div>
+                    <div class="dot" data-index="8"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-set" onclick="setPattern()">パターン設定</button>
+                <button class="btn-reset" onclick="resetPattern()">リセット</button>
+                <button class="btn-clear" onclick="clearPattern()">クリア</button>
+            </div>
+
+            <div class="instructions">
+                <h3>使い方</h3>
+                <p>1. 9つの点を線で結んでパターンを描きます（最低3点）</p>
+                <p>2. 正しいパターンを再現すると解除成功です</p>
+                <p>3. 中間点は自動的に選択されます（例：左上→右上は中央上も自動選択）</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ログ表示領域 -->
+    <div class="log-wrap" style="margin-top:40px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight:600;">操作ログ</span>
+        <span>
+          <button id="clearLogBtn" style="padding:6px 16px;border-radius:5px;margin:0 6px;background:#cbd5e1;color:#23272f;border:none;font-size:13px;cursor:pointer;">ログ消去</button>
+          <button id="dlLogBtn" style="padding:6px 16px;border-radius:5px;background:#6ee7b7;color:#23272f;border:none;font-size:13px;cursor:pointer;">CSVダウンロード</button>
+        </span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="logTable" style="margin-top:8px;width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#f3f4f6;"><th>時刻</th><th>種別</th><th>動作</th><th>値</th><th>判定</th></tr>
+          </thead>
+          <tbody id="logTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+        // ========== ログ機能 ==========
+        let logData = [];
+        function addLog(entry) {
+            logData.push(entry);
+            renderLogTable();
+        }
+        function renderLogTable() {
+            const body = document.getElementById('logTableBody');
+            body.innerHTML = logData.map(log => `<tr><td>${log.time}</td><td>${log.category}</td><td>${log.action}</td><td>${log.value}</td><td>${log.result}</td></tr>`).join('');
+        }
+        function clearLog() {
+            logData = [];
+            renderLogTable();
+        }
+        function downloadCSV() {
+            if(logData.length === 0) return;
+            const header = ['時刻','種別','動作','値','判定'];
+            const rows = logData.map(e=>[e.time,e.category,e.action,e.value,e.result]);
+            let csv = header.join(',') + '\n';
+            csv += rows.map(r=>r.map(x=>(typeof x==='string'?x.replace(/"/g,'""'):'')).map(x=>`"${x}"`).join(',')).join('\n');
+            const blob = new Blob([csv],{type:'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'lock_log.csv'; a.click();
+            setTimeout(()=>URL.revokeObjectURL(url), 200);
+        }
+        window.addEventListener('DOMContentLoaded',()=>{
+            document.getElementById('clearLogBtn').onclick = clearLog;
+            document.getElementById('dlLogBtn').onclick = downloadCSV;
+        });
+
+        // モード管理
+        let currentMode = null;
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeSelection').style.display = 'none';
+            
+            if (mode === 'pin') {
+                document.getElementById('pinLockView').classList.add('active');
+                initPinDisplay();
+                updatePinAttemptsDisplay();
+            } else if (mode === 'pattern') {
+                document.getElementById('patternLockView').classList.add('active');
+                initPatternLock();
+                updatePatternAttemptsDisplay();
+            }
+        }
+
+        function backToSelection() {
+            currentMode = null;
+            document.getElementById('modeSelection').style.display = 'block';
+            document.getElementById('pinLockView').classList.remove('active');
+            document.getElementById('patternLockView').classList.remove('active');
+            
+            // PINロックの状態をリセット
+            if (pinSavedPin !== null) {
+                resetPin();
+            }
+            
+            // パターンロックの状態をリセット
+            if (patternSavedPattern !== null) {
+                resetPattern();
+            }
+        }
+
+        // ========== PINロック機能 ==========
+        let currentPin = [];
+        let pinSavedPin = null;
+        let pinLength = 4;
+        let pinAttempts = 0;
+
+        const pinStatus = document.getElementById('pinStatus');
+        const pinDisplay = document.getElementById('pinDisplay');
+        const container = document.getElementById('container');
+        const pinAttemptsDisplay = document.getElementById('pinAttemptsDisplay');
+
+        function updatePinAttemptsDisplay() {
+            pinAttemptsDisplay.textContent = `挑戦回数: ${pinAttempts}`;
+        }
+
+        function initPinDisplay() {
+            pinDisplay.innerHTML = '';
+            for (let i = 0; i < pinLength; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'pin-dot';
+                pinDisplay.appendChild(dot);
+            }
+            updatePinDisplay();
+        }
+
+        function updatePinDisplay() {
+            const dots = pinDisplay.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('filled', 'error', 'success');
+                if (index < currentPin.length) {
+                    dot.classList.add('filled');
+                }
+            });
+        }
+
+        function changePinLength() {
+            const select = document.getElementById('pinLength');
+            pinLength = parseInt(select.value);
+            currentPin = [];
+            initPinDisplay();
+            if (!pinSavedPin) {
+                pinStatus.textContent = 'まずPINコードを設定してください';
+                pinStatus.className = 'status info';
+            } else {
+                pinStatus.textContent = 'PINコードを入力してください';
+                pinStatus.className = 'status info';
+            }
+        }
+
+        function inputNumber(num) {
+            if (currentMode !== 'pin') return;
+            if (currentPin.length >= pinLength) {
+                return;
+            }
+
+            currentPin.push(num);
+            updatePinDisplay();
+
+            if (!pinSavedPin) {
+                pinStatus.textContent = `PINコードを入力中... (${currentPin.length}/${pinLength})`;
+                pinStatus.className = 'status info';
+            } else {
+                pinStatus.textContent = `PINコードを入力中... (${currentPin.length}/${pinLength})`;
+                pinStatus.className = 'status info';
+                
+                if (currentPin.length === pinLength) {
+                    pinAttempts++;
+                    updatePinAttemptsDisplay();
+                    setTimeout(() => {
+                        if (validatePin()) {
+                            showPinSuccess();
+                        } else {
+                            showPinError();
+                        }
+                    }, 300);
+                }
+            }
+        }
+
+        function deleteLastPin() {
+            if (currentMode !== 'pin') return;
+            if (currentPin.length > 0) {
+                currentPin.pop();
+                updatePinDisplay();
+                if (!pinSavedPin) {
+                    pinStatus.textContent = currentPin.length > 0 
+                        ? `PINコードを入力中... (${currentPin.length}/${pinLength})`
+                        : 'まずPINコードを設定してください';
+                } else {
+                    pinStatus.textContent = currentPin.length > 0 
+                        ? `PINコードを入力中... (${currentPin.length}/${pinLength})`
+                        : 'PINコードを入力してください';
+                }
+                pinStatus.className = 'status info';
+            }
+        }
+
+        function clearPinInput() {
+            if (currentMode !== 'pin') return;
+            currentPin = [];
+            updatePinDisplay();
+            if (!pinSavedPin) {
+                pinStatus.textContent = 'まずPINコードを設定してください';
+            } else {
+                pinStatus.textContent = 'PINコードを入力してください';
+            }
+            pinStatus.className = 'status info';
+        }
+
+        function setPin() {
+            if (currentMode !== 'pin') return;
+            if (currentPin.length !== pinLength) {
+                pinStatus.textContent = `${pinLength}桁のPINコードを入力してください`;
+                pinStatus.className = 'status error';
+                return;
+            }
+            addLog({
+                time: new Date().toLocaleString(),
+                category: 'PIN',
+                action: '設定',
+                value: currentPin.join(''),
+                result: ''
+            });
+            pinSavedPin = [...currentPin];
+            pinAttempts = 0;
+            updatePinAttemptsDisplay();
+            pinStatus.textContent = 'PINコードが設定されました！解除を試してください';
+            pinStatus.className = 'status success';
+            clearPinInput();
+        }
+
+        function resetPin() {
+            if (currentMode !== 'pin') return;
+            pinSavedPin = null;
+            pinAttempts = 0;
+            updatePinAttemptsDisplay();
+            clearPinInput();
+            pinStatus.textContent = 'PINコードを設定してください';
+            pinStatus.className = 'status info';
+        }
+
+        function validatePin() {
+            if (!pinSavedPin) {
+                pinStatus.textContent = 'まずPINコードを設定してください';
+                pinStatus.className = 'status error';
+                return false;
+            }
+
+            if (currentPin.length !== pinSavedPin.length) {
+                return false;
+            }
+
+            for (let i = 0; i < currentPin.length; i++) {
+                if (currentPin[i] !== pinSavedPin[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function showPinError() {
+            addLog({
+                time: new Date().toLocaleString(),
+                category: 'PIN',
+                action: '入力',
+                value: currentPin.join(''),
+                result: '不正解'
+            });
+            pinStatus.textContent = 'PINコードが一致しません';
+            pinStatus.className = 'status error';
+            container.classList.add('error-shake');
+            
+            const dots = pinDisplay.querySelectorAll('.pin-dot');
+            dots.forEach(dot => {
+                dot.classList.remove('filled', 'success');
+                dot.classList.add('error');
+            });
+
+            setTimeout(() => {
+                container.classList.remove('error-shake');
+                clearPinInput();
+            }, 500);
+        }
+
+        function showPinSuccess() {
+            addLog({
+                time: new Date().toLocaleString(),
+                category: 'PIN',
+                action: '入力',
+                value: currentPin.join(''),
+                result: '正解'
+            });
+            pinStatus.textContent = '解除成功！';
+            pinStatus.className = 'status success';
+            container.classList.add('success-glow');
+            
+            const dots = pinDisplay.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                setTimeout(() => {
+                    dot.classList.remove('filled', 'error');
+                    dot.classList.add('success');
+                }, index * 50);
+            });
+
+            setTimeout(() => {
+                container.classList.remove('success-glow');
+                clearPinInput();
+                pinStatus.textContent = 'PINコードを入力してください';
+                pinStatus.className = 'status info';
+            }, 2000);
+        }
+
+        // ========== パターンロック機能 ==========
+        const patternGrid = document.getElementById('patternGrid');
+        const patternStatus = document.getElementById('patternStatus');
+        const patternAttemptsDisplay = document.getElementById('patternAttemptsDisplay');
+        let patternDots = null;
+        
+        let currentPattern = [];
+        let patternSavedPattern = null;
+        let patternAttempts = 0;
+        let isDrawing = false;
+        let lastDot = null;
+        let lines = [];
+
+        function updatePatternAttemptsDisplay() {
+            patternAttemptsDisplay.textContent = `挑戦回数: ${patternAttempts}`;
+        }
+
+        function initPatternLock() {
+            patternDots = document.querySelectorAll('#patternGrid .dot');
+            currentPattern = [];
+            patternSavedPattern = null;
+            isDrawing = false;
+            lastDot = null;
+            lines = [];
+            clearPattern();
+            updatePatternAttemptsDisplay();
+        }
+
+        function getDotPosition(index) {
+            const dot = patternDots[index];
+            const rect = patternGrid.getBoundingClientRect();
+            const dotRect = dot.getBoundingClientRect();
+            return {
+                x: dotRect.left + dotRect.width / 2 - rect.left,
+                y: dotRect.top + dotRect.height / 2 - rect.top
+            };
+        }
+
+        function getDistance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        }
+
+        function getDotIndexFromPosition(x, y) {
+            const rect = patternGrid.getBoundingClientRect();
+            const localX = x - rect.left;
+            const localY = y - rect.top;
+
+            let closestIndex = -1;
+            let closestDistance = 60;
+
+            for (let i = 0; i < patternDots.length; i++) {
+                const pos = getDotPosition(i);
+                const distance = getDistance(localX, localY, pos.x, pos.y);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        }
+
+        function checkIntermediateDot(fromIndex, toIndex) {
+            if (fromIndex === -1 || toIndex === -1) return -1;
+            
+            const fromRow = Math.floor(fromIndex / 3);
+            const fromCol = fromIndex % 3;
+            const toRow = Math.floor(toIndex / 3);
+            const toCol = toIndex % 3;
+            
+            if (fromRow === toRow && Math.abs(fromCol - toCol) === 2) {
+                return fromRow * 3 + 1;
+            } else if (fromCol === toCol && Math.abs(fromRow - toRow) === 2) {
+                return 3 + fromCol;
+            } else if (Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2) {
+                return 4;
+            }
+            
+            return -1;
+        }
+
+        function drawLine(fromIndex, toIndex, lineClass = '') {
+            const from = getDotPosition(fromIndex);
+            const to = getDotPosition(toIndex);
+            
+            const length = getDistance(from.x, from.y, to.x, to.y);
+            const angle = Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI;
+            
+            const line = document.createElement('div');
+            line.className = 'line' + (lineClass ? ' ' + lineClass : '');
+            line.style.width = length + 'px';
+            line.style.left = from.x + 'px';
+            line.style.top = from.y + 'px';
+            line.style.transform = `rotate(${angle}deg)`;
+            
+            patternGrid.appendChild(line);
+            lines.push(line);
+        }
+
+        function activateDot(index) {
+            if (index === -1) return;
+            if (currentPattern.includes(index)) return;
+            
+            if (lastDot !== null && lastDot !== index) {
+                const intermediate = checkIntermediateDot(lastDot, index);
+                if (intermediate !== -1 && !currentPattern.includes(intermediate)) {
+                    activateDotDirect(intermediate);
+                }
+            }
+            
+            activateDotDirect(index);
+        }
+
+        function activateDotDirect(index) {
+            if (currentPattern.includes(index)) return;
+            
+            const dot = patternDots[index];
+            dot.classList.add('active');
+            
+            if (lastDot !== null && lastDot !== index) {
+                drawLine(lastDot, index);
+            }
+            
+            currentPattern.push(index);
+            lastDot = index;
+            
+            setTimeout(() => {
+                dot.classList.remove('active');
+                dot.classList.add('visited');
+            }, 200);
+        }
+
+        function clearPattern() {
+            if (currentMode !== 'pattern') return;
+            currentPattern = [];
+            lastDot = null;
+            isDrawing = false;
+            
+            if (patternDots) {
+                patternDots.forEach(dot => {
+                    dot.classList.remove('active', 'visited', 'error', 'success');
+                });
+            }
+            
+            lines.forEach(line => line.remove());
+            lines = [];
+            
+            patternStatus.textContent = patternSavedPattern ? 'パターンを描いてください' : 'まずパターンを描いて「パターン設定」を押してください';
+            patternStatus.className = 'status info';
+        }
+
+        function setPattern() {
+            addLog({
+                time: new Date().toLocaleString(),
+                category: 'パターン',
+                action: '設定',
+                value: currentPattern.map(i => i+1).join('-'),
+                result: ''
+            });
+            if (currentMode !== 'pattern') return;
+            if (currentPattern.length < 3) {
+                patternStatus.textContent = '最低3つの点を結んでください';
+                patternStatus.className = 'status error';
+                return;
+            }
+            
+            patternSavedPattern = [...currentPattern];
+            patternAttempts = 0;
+            updatePatternAttemptsDisplay();
+            patternStatus.textContent = 'パターンが設定されました！解除を試してください';
+            patternStatus.className = 'status success';
+            clearPattern();
+        }
+
+        function resetPattern() {
+            if (currentMode !== 'pattern') return;
+            patternSavedPattern = null;
+            patternAttempts = 0;
+            updatePatternAttemptsDisplay();
+            clearPattern();
+            patternStatus.textContent = 'パターンを設定してください';
+            patternStatus.className = 'status info';
+        }
+
+        function validatePattern() {
+            if (!patternSavedPattern) {
+                patternStatus.textContent = 'まずパターンを設定してください';
+                patternStatus.className = 'status error';
+                return false;
+            }
+            
+            if (currentPattern.length !== patternSavedPattern.length) {
+                return false;
+            }
+            
+            for (let i = 0; i < currentPattern.length; i++) {
+                if (currentPattern[i] !== patternSavedPattern[i]) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // パターンロックのイベントリスナー
+        function setupPatternEvents() {
+            patternGrid.addEventListener('mousedown', (e) => {
+                if (currentMode !== 'pattern') return;
+                isDrawing = true;
+                const index = getDotIndexFromPosition(e.clientX, e.clientY);
+                if (index !== -1) {
+                    activateDot(index);
+                    if (!patternSavedPattern) {
+                        patternStatus.textContent = `パターンを描いています... (${currentPattern.length}点)`;
+                        patternStatus.className = 'status info';
+                    }
+                }
+            });
+
+            patternGrid.addEventListener('mousemove', (e) => {
+                if (currentMode !== 'pattern' || !isDrawing) return;
+                
+                const index = getDotIndexFromPosition(e.clientX, e.clientY);
+                if (index !== -1 && index !== lastDot) {
+                    activateDot(index);
+                    if (!patternSavedPattern) {
+                        patternStatus.textContent = `パターンを描いています... (${currentPattern.length}点)`;
+                        patternStatus.className = 'status info';
+                    }
+                }
+            });
+
+            patternGrid.addEventListener('mouseup', () => {
+                if (currentMode !== 'pattern' || !isDrawing) return;
+                
+                isDrawing = false;
+                
+                if (!patternSavedPattern) {
+                    if (currentPattern.length < 3) {
+                        patternStatus.textContent = '最低3つの点を結んでください';
+                        patternStatus.className = 'status error';
+                        setTimeout(() => {
+                            clearPattern();
+                            patternStatus.textContent = 'パターンを描いてください';
+                            patternStatus.className = 'status info';
+                        }, 2000);
+                    } else {
+                        patternStatus.textContent = `${currentPattern.length}点のパターンが描かれました。「パターン設定」ボタンを押して保存してください`;
+                        patternStatus.className = 'status info';
+                    }
+                } else {
+                    if (currentPattern.length < 3) {
+                        patternStatus.textContent = '最低3つの点を結んでください';
+                        patternStatus.className = 'status error';
+                        clearPattern();
+                        return;
+                    }
+                    
+                    patternAttempts++;
+                    updatePatternAttemptsDisplay();
+
+                    if (validatePattern()) {
+                        addLog({
+                            time: new Date().toLocaleString(),
+                            category: 'パターン',
+                            action: '入力',
+                            value: currentPattern.map(i => i+1).join('-'),
+                            result: '正解'
+                        });
+                        patternStatus.textContent = '解除成功！';
+                        patternStatus.className = 'status success';
+                        const patternContainer = document.querySelector('.pattern-container');
+                        patternContainer.classList.add('success-glow');
+                        
+                        // 成功時の視覚的フィードバック
+                        patternDots.forEach((dot, index) => {
+                            if (currentPattern.includes(index)) {
+                                setTimeout(() => {
+                                    dot.classList.remove('visited', 'error');
+                                    dot.classList.add('success');
+                                }, index * 50);
+                            }
+                        });
+                        
+                        // 線を成功色に変更
+                        lines.forEach((line, index) => {
+                            setTimeout(() => {
+                                line.classList.remove('error');
+                                line.classList.add('success');
+                            }, index * 50);
+                        });
+                        
+                        setTimeout(() => {
+                            patternContainer.classList.remove('success-glow');
+                            clearPattern();
+                            patternStatus.textContent = 'パターンを描いてください';
+                            patternStatus.className = 'status info';
+                        }, 2000);
+                    } else {
+                        addLog({
+                            time: new Date().toLocaleString(),
+                            category: 'パターン',
+                            action: '入力',
+                            value: currentPattern.map(i => i+1).join('-'),
+                            result: '不正解'
+                        });
+                        patternStatus.textContent = 'パターンが一致しません';
+                        patternStatus.className = 'status error';
+                        const patternContainer = document.querySelector('.pattern-container');
+                        patternContainer.classList.add('error-shake');
+                        
+                        // 失敗時の視覚的フィードバック
+                        patternDots.forEach((dot, index) => {
+                            if (currentPattern.includes(index)) {
+                                dot.classList.remove('visited', 'success');
+                                dot.classList.add('error');
+                            }
+                        });
+                        
+                        // 線をエラー色に変更
+                        lines.forEach(line => {
+                            line.classList.remove('success');
+                            line.classList.add('error');
+                        });
+                        
+                        setTimeout(() => {
+                            patternContainer.classList.remove('error-shake');
+                            clearPattern();
+                        }, 500);
+                    }
+                }
+            });
+
+            // タッチイベント
+            patternGrid.addEventListener('touchstart', (e) => {
+                if (currentMode !== 'pattern') return;
+                e.preventDefault();
+                isDrawing = true;
+                const touch = e.touches[0];
+                const index = getDotIndexFromPosition(touch.clientX, touch.clientY);
+                if (index !== -1) {
+                    activateDot(index);
+                    if (!patternSavedPattern) {
+                        patternStatus.textContent = `パターンを描いています... (${currentPattern.length}点)`;
+                        patternStatus.className = 'status info';
+                    }
+                }
+            });
+
+            patternGrid.addEventListener('touchmove', (e) => {
+                if (currentMode !== 'pattern' || !isDrawing) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const index = getDotIndexFromPosition(touch.clientX, touch.clientY);
+                if (index !== -1 && index !== lastDot) {
+                    activateDot(index);
+                    if (!patternSavedPattern) {
+                        patternStatus.textContent = `パターンを描いています... (${currentPattern.length}点)`;
+                        patternStatus.className = 'status info';
+                    }
+                }
+            });
+
+            patternGrid.addEventListener('touchend', (e) => {
+                if (currentMode !== 'pattern' || !isDrawing) return;
+                e.preventDefault();
+                
+                isDrawing = false;
+                
+                if (!patternSavedPattern) {
+                    if (currentPattern.length < 3) {
+                        patternStatus.textContent = '最低3つの点を結んでください';
+                        patternStatus.className = 'status error';
+                        setTimeout(() => {
+                            clearPattern();
+                            patternStatus.textContent = 'パターンを描いてください';
+                            patternStatus.className = 'status info';
+                        }, 2000);
+                    } else {
+                        patternStatus.textContent = `${currentPattern.length}点のパターンが描かれました。「パターン設定」ボタンを押して保存してください`;
+                        patternStatus.className = 'status info';
+                    }
+                } else {
+                    if (currentPattern.length < 3) {
+                        patternStatus.textContent = '最低3つの点を結んでください';
+                        patternStatus.className = 'status error';
+                        clearPattern();
+                        return;
+                    }
+                    
+                    patternAttempts++;
+                    updatePatternAttemptsDisplay();
+
+                    if (validatePattern()) {
+                        addLog({
+                            time: new Date().toLocaleString(),
+                            category: 'パターン',
+                            action: '入力',
+                            value: currentPattern.map(i => i+1).join('-'),
+                            result: '正解'
+                        });
+                        patternStatus.textContent = '解除成功！';
+                        patternStatus.className = 'status success';
+                        const patternContainer = document.querySelector('.pattern-container');
+                        patternContainer.classList.add('success-glow');
+                        
+                        // 成功時の視覚的フィードバック
+                        patternDots.forEach((dot, index) => {
+                            if (currentPattern.includes(index)) {
+                                setTimeout(() => {
+                                    dot.classList.remove('visited', 'error');
+                                    dot.classList.add('success');
+                                }, index * 50);
+                            }
+                        });
+                        
+                        // 線を成功色に変更
+                        lines.forEach((line, index) => {
+                            setTimeout(() => {
+                                line.classList.remove('error');
+                                line.classList.add('success');
+                            }, index * 50);
+                        });
+                        
+                        setTimeout(() => {
+                            patternContainer.classList.remove('success-glow');
+                            clearPattern();
+                            patternStatus.textContent = 'パターンを描いてください';
+                            patternStatus.className = 'status info';
+                        }, 2000);
+                    } else {
+                        addLog({
+                            time: new Date().toLocaleString(),
+                            category: 'パターン',
+                            action: '入力',
+                            value: currentPattern.map(i => i+1).join('-'),
+                            result: '不正解'
+                        });
+                        patternStatus.textContent = 'パターンが一致しません';
+                        patternStatus.className = 'status error';
+                        const patternContainer = document.querySelector('.pattern-container');
+                        patternContainer.classList.add('error-shake');
+                        
+                        // 失敗時の視覚的フィードバック
+                        patternDots.forEach((dot, index) => {
+                            if (currentPattern.includes(index)) {
+                                dot.classList.remove('visited', 'success');
+                                dot.classList.add('error');
+                            }
+                        });
+                        
+                        // 線をエラー色に変更
+                        lines.forEach(line => {
+                            line.classList.remove('success');
+                            line.classList.add('error');
+                        });
+                        
+                        setTimeout(() => {
+                            patternContainer.classList.remove('error-shake');
+                            clearPattern();
+                        }, 500);
+                    }
+                }
+            });
+        }
+
+        // キーボード入力対応（PINロック用）
+        document.addEventListener('keydown', (e) => {
+            if (currentMode !== 'pin') return;
+            
+            if (e.key >= '0' && e.key <= '9') {
+                inputNumber(parseInt(e.key));
+            } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                deleteLastPin();
+            } else if (e.key === 'Escape') {
+                clearPinInput();
+            } else if (e.key === 'Enter') {
+                if (!pinSavedPin) {
+                    setPin();
+                } else if (currentPin.length === pinLength) {
+                    if (validatePin()) {
+                        showPinSuccess();
+                    } else {
+                        showPinError();
+                    }
+                }
+            }
+        });
+
+        // 初期化
+        setupPatternEvents();
+    </script>
+</body>
+</html>
