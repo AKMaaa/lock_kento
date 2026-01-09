@@ -1,0 +1,776 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #FFE5F1 0%, #E5F0FF 50%, #FFF5E5 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.container {
+    background: #FFFFFF;
+    border-radius: 25px;
+    padding: 30px;
+    max-width: 1200px;
+    width: 100%;
+    border: 3px solid #FFB6D9;
+}
+
+h1 {
+    text-align: center;
+    color: #FF6B9D;
+    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.status {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 25px;
+}
+
+.status.success {
+    color: #4ECDC4;
+}
+
+.status.error {
+    color: #FF8A95;
+}
+
+.status.info {
+    color: #7B9ACC;
+}
+
+.attempts {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #A8C5E2;
+    font-weight: 600;
+}
+
+/* モード選択画面 */
+.mode-selection {
+    text-align: center;
+}
+
+.mode-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.mode-btn {
+    padding: 15px 30px;
+    border: 3px solid;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #FFFFFF;
+    flex: 1;
+    min-width: 150px;
+    max-width: 250px;
+}
+
+.mode-btn:hover {
+    transform: translateY(-3px);
+    opacity: 0.9;
+}
+
+.mode-btn:active {
+    transform: translateY(-1px);
+}
+
+.mode-btn.pattern {
+    background: #FFB6D9;
+    border-color: #FF8CC8;
+    color: #FFFFFF;
+}
+
+.mode-btn.pattern:hover {
+    background: #FF8CC8;
+}
+
+.mode-btn.pin {
+    background: #A8E6CF;
+    border-color: #7DD3A0;
+    color: #FFFFFF;
+}
+
+.mode-btn.pin:hover {
+    background: #7DD3A0;
+}
+
+.mode-btn.log {
+    background: #FFD3A5;
+    border-color: #FFC085;
+    color: #FFFFFF;
+}
+
+.mode-btn.log:hover {
+    background: #FFC085;
+}
+
+.back-btn {
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    border: 3px solid #FFB6D9;
+    border-radius: 15px;
+    background: #FFE5F1;
+    color: #FF6B9D;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background: #FFB6D9;
+    color: #FFFFFF;
+    transform: translateY(-2px);
+}
+
+/* PINロック画面 */
+.pin-lock-view {
+    display: none;
+}
+
+.pin-lock-view.active {
+    display: block;
+}
+
+.pin-lock-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.pin-lock-content {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.pin-lock-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    width: 100%;
+}
+
+.pin-lock-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pin-lock-sidebar .controls {
+    justify-content: flex-start;
+}
+
+.pin-length-selector {
+    text-align: center;
+    padding: 15px;
+    background: #FFF5E5;
+    border-radius: 15px;
+    border: 2px solid #FFD3A5;
+}
+
+.pin-length-selector label {
+    font-size: 14px;
+    color: #7B9ACC;
+    margin-right: 10px;
+    font-weight: 600;
+}
+
+.pin-length-selector select {
+    padding: 8px 12px;
+    border: 3px solid #FFD3A5;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #FFFFFF;
+    color: #FF6B9D;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.pin-length-selector select:focus {
+    outline: none;
+    border-color: #FFB6D9;
+}
+
+.pin-display {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+    background: #FFF5E5;
+    border-radius: 15px;
+    border: 2px solid #FFD3A5;
+    width: 100%;
+}
+
+.pin-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid #FFD3A5;
+    background: #FFFFFF;
+    transition: all 0.2s;
+}
+
+.pin-dot.filled {
+    background: #A8E6CF;
+    border-color: #7DD3A0;
+}
+
+.pin-dot.error {
+    background: #FF8A95;
+    border-color: #FF6B9D;
+    animation: pulse 0.3s;
+}
+
+.pin-dot.success {
+    background: #4ECDC4;
+    border-color: #2FB5AC;
+    animation: successPulse 0.5s;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes successPulse {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(1.1); }
+}
+
+.container.success-glow {
+    animation: successGlow 0.6s;
+}
+
+@keyframes successGlow {
+    0%, 100% { border-color: #FFB6D9; }
+    50% { border-color: #4ECDC4; }
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    padding: 20px;
+    background: #FFF5E5;
+    border-radius: 20px;
+    border: 2px solid #FFD3A5;
+}
+
+.key {
+    aspect-ratio: 1;
+    border: 3px solid;
+    border-radius: 20px;
+    font-size: 32px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FFFFFF;
+    min-height: 60px;
+}
+
+.key:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.key:active {
+    transform: translateY(0);
+    opacity: 0.8;
+}
+
+.key:nth-child(1) { background: #FFB6D9; border-color: #FF8CC8; }
+.key:nth-child(2) { background: #A8E6CF; border-color: #7DD3A0; }
+.key:nth-child(3) { background: #FFD3A5; border-color: #FFC085; }
+.key:nth-child(4) { background: #A8C5E2; border-color: #7B9ACC; }
+.key:nth-child(5) { background: #FFB6D9; border-color: #FF8CC8; }
+.key:nth-child(6) { background: #4ECDC4; border-color: #2FB5AC; }
+.key:nth-child(7) { background: #FFD3A5; border-color: #FFC085; }
+.key:nth-child(8) { background: #A8E6CF; border-color: #7DD3A0; }
+.key:nth-child(9) { background: #A8C5E2; border-color: #7B9ACC; }
+.key:nth-child(10) { background: #FFB6D9; border-color: #FF8CC8; }
+.key:nth-child(11) { background: #4ECDC4; border-color: #2FB5AC; }
+.key:nth-child(12) { background: #FF8A95; border-color: #FF6B9D; }
+
+.key.delete {
+    background: #FF8A95;
+    border-color: #FF6B9D;
+}
+
+.key.delete:hover {
+    background: #FF6B9D;
+}
+
+.key.clear {
+    background: #A8C5E2;
+    border-color: #7B9ACC;
+    font-size: 18px;
+}
+
+.key.clear:hover {
+    background: #7B9ACC;
+}
+
+.container.error-shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.controls button {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 20px;
+    border: 3px solid;
+    border-radius: 15px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #FFFFFF;
+}
+
+.btn-reset {
+    background: #A8C5E2;
+    border-color: #7B9ACC;
+}
+
+.btn-reset:hover {
+    background: #7B9ACC;
+    transform: translateY(-2px);
+}
+
+.btn-set {
+    background: #4ECDC4;
+    border-color: #2FB5AC;
+}
+
+.btn-set:hover {
+    background: #2FB5AC;
+    transform: translateY(-2px);
+}
+
+.btn-clear {
+    background: #FFD3A5;
+    border-color: #FFC085;
+}
+
+.btn-clear:hover {
+    background: #FFC085;
+    transform: translateY(-2px);
+}
+
+.instructions {
+    padding: 20px;
+    background: #FFF5E5;
+    border-radius: 15px;
+    font-size: 14px;
+    color: #7B9ACC;
+    line-height: 1.8;
+    border: 2px solid #FFD3A5;
+}
+
+.instructions h3 {
+    color: #FF6B9D;
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.instructions p {
+    margin-bottom: 8px;
+}
+
+.instructions p:last-child {
+    margin-bottom: 0;
+}
+
+/* パターンロック画面 */
+.pattern-lock-view {
+    display: none;
+}
+
+.pattern-lock-view.active {
+    display: block;
+}
+
+.pattern-lock-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.pattern-lock-content {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.pattern-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #FFF5E5;
+    border-radius: 20px;
+    padding: 20px;
+    transition: transform 0.1s;
+    border: 3px solid #FFD3A5;
+}
+
+.pattern-grid {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.dot {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid #FFD3A5;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dot::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.dot.active {
+    border-color: #FFB6D9;
+    background: #FFE5F1;
+}
+
+.dot.active::before {
+    background: #FFB6D9;
+}
+
+.dot.visited {
+    border-color: #A8E6CF;
+    background: #E5F5ED;
+}
+
+.dot.visited::before {
+    background: #A8E6CF;
+}
+
+.dot.error {
+    border-color: #FF8A95;
+    background: #FFE5E8;
+}
+
+.dot.error::before {
+    background: #FF8A95;
+}
+
+.dot.success {
+    border-color: #4ECDC4;
+    background: #E5F5F3;
+}
+
+.dot.success::before {
+    background: #4ECDC4;
+}
+
+.pattern-container.error-shake {
+    animation: shakePattern 0.5s;
+}
+
+.pattern-container.success-glow {
+    animation: successGlow 0.6s;
+}
+
+.line.error {
+    background: #FF8A95;
+}
+
+.line.success {
+    background: #4ECDC4;
+}
+
+@keyframes shakePattern {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+    20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+/* 9つの点の配置 */
+.dot:nth-child(1) { top: 5%; left: 0; }
+.dot:nth-child(2) { top: 5%; left: 50%; transform: translateX(-50%); }
+.dot:nth-child(3) { top: 5%; right: 0; }
+.dot:nth-child(4) { top: 50%; left: 0; transform: translateY(-50%); }
+.dot:nth-child(5) { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.dot:nth-child(6) { top: 50%; right: 0; transform: translateY(-50%); }
+.dot:nth-child(7) { bottom: 5%; left: 0; }
+.dot:nth-child(8) { bottom: 5%; left: 50%; transform: translateX(-50%); }
+.dot:nth-child(9) { bottom: 5%; right: 0; }
+
+.line {
+    position: absolute;
+    height: 4px;
+    background: #FFB6D9;
+    transform-origin: left center;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.pattern-lock-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pattern-lock-sidebar .controls {
+    justify-content: flex-start;
+}
+
+/* ログ表示 */
+.log-wrap {
+    margin-top: 40px;
+    padding: 20px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 3px solid #FFD3A5;
+}
+
+.log-wrap > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.log-wrap > div:first-child > span:first-child {
+    font-weight: 600;
+    color: #FF6B9D;
+    font-size: 18px;
+}
+
+.log-wrap button {
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 3px solid;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: #FFFFFF;
+}
+
+#clearLogBtn {
+    background: #A8C5E2;
+    border-color: #7B9ACC;
+    margin: 0 6px;
+}
+
+#clearLogBtn:hover {
+    background: #7B9ACC;
+    transform: translateY(-2px);
+}
+
+#dlLogBtn {
+    background: #4ECDC4;
+    border-color: #2FB5AC;
+}
+
+#dlLogBtn:hover {
+    background: #2FB5AC;
+    transform: translateY(-2px);
+}
+
+#logTable {
+    margin-top: 8px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+#logTable thead tr {
+    background: #FFF5E5;
+}
+
+#logTable th {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #FFD3A5;
+    color: #FF6B9D;
+    font-weight: 600;
+}
+
+#logTable td {
+    padding: 10px;
+    border-bottom: 1px solid #FFE5F1;
+    color: #7B9ACC;
+}
+
+#logTable tbody tr:hover {
+    background: #FFF5E5;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        align-items: center;
+    }
+
+    .container {
+        padding: 20px;
+        border-radius: 20px;
+        max-width: 100%;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .mode-buttons {
+        flex-direction: column;
+    }
+
+    .mode-btn {
+        max-width: 100%;
+    }
+
+    .pin-lock-content {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .pattern-lock-content {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .pattern-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .key {
+        font-size: 28px;
+        min-height: 55px;
+    }
+
+    .keypad {
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .dot {
+        width: 50px;
+        height: 50px;
+    }
+
+    .dot::before {
+        width: 18px;
+        height: 18px;
+    }
+
+    .controls {
+        flex-direction: row;
+    }
+
+    .controls button {
+        flex: 1;
+        min-width: auto;
+    }
+
+    .pin-display {
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .pin-dot {
+        width: 20px;
+        height: 20px;
+    }
+
+    .instructions {
+        font-size: 13px;
+        padding: 15px;
+    }
+
+    .log-wrap {
+        padding: 15px;
+    }
+
+    .log-wrap > div:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .log-wrap > div:first-child > span:last-child {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .log-wrap button {
+        width: 100%;
+        margin: 0;
+    }
+
+    #logTable {
+        font-size: 11px;
+    }
+
+    #logTable th,
+    #logTable td {
+        padding: 8px 5px;
+    }
+}
