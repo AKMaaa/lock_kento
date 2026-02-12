@@ -10,6 +10,9 @@ function renderLogTable() {
     body.innerHTML = logData.map(log => `<tr><td>${log.time}</td><td>${log.category}</td><td>${log.action}</td><td>${log.value}</td><td>${log.attempts !== undefined ? log.attempts : ''}</td><td>${log.result}</td></tr>`).join('');
 }
 function clearLog() {
+    if (!window.confirm('本当にログを消去しますか？')) {
+        return;
+    }
     logData = [];
     renderLogTable();
     saveState();
